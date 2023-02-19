@@ -2,14 +2,18 @@
 BaiduAi Translate  for  PotPlayer Subtitle Translate 
 
 
- 本仓库受fjqingyou仓库[PotPlayer_Subtitle_Translate_Baidu]（https://github.com/fjqingyou/PotPlayer_Subtitle_Translate_Baidu)启发
+ 本仓库受fjqingyou仓库启发 [PotPlayer_Subtitle_Translate_Baidu]（https://github.com/fjqingyou/PotPlayer_Subtitle_Translate_Baidu)
  fjqingyou仓库PotPlayer_Subtitle_Translate_Baidu，使用百度翻译，调用字符为每月免费5万字符/月
  本仓库使用百度ai机器翻译 文本翻译-通用版，个人认证后免费使用365天，调用字符为在 500 万字符。
  
  #使用要求：
  第一步：获取API Key和Secret Key
+ 
  1.需实名认证；
- 2.机器翻译 文本翻译-通用版控制台-免费资源领取页 可领取免费测试资源。https://console.bce.baidu.com/ai/#/ai/machinetranslation/overview/index 
+ 
+ 2.登入后可至机器翻译页面领取测试资源，链接为https://console.bce.baidu.com/ai/#/ai/machinetranslation/overview/index 
+ 机器翻译 文本翻译-通用版控制台-免费资源领取页 可领取免费测试资源。
+ 
  3.创建机器翻译 文本翻译-通用版应用，生成API Key和Secret Key
  
  第二步：安装翻译插件
