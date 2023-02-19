@@ -1,8 +1,8 @@
 # PotPlayer_Subtitle_Translate_BaiduAi
-BaiduAi Translate  for  PotPlayer Subtitle Translate 
+BaiduAi Translate  for  PotPlayer Subtitle Translate 使用说明
 
-
- 本仓库受fjqingyou仓库启发 [PotPlayer_Subtitle_Translate_Baidu]（https://github.com/fjqingyou/PotPlayer_Subtitle_Translate_Baidu)
+ 本仓库受fjqingyou仓库启发 [PotPlayer_Subtitle_Translate_Baidu](https://github.com/fjqingyou/PotPlayer_Subtitle_Translate_Baidu)
+ 
  fjqingyou仓库PotPlayer_Subtitle_Translate_Baidu，使用百度翻译，调用字符为每月免费5万字符/月
  本仓库使用百度ai机器翻译 文本翻译-通用版，个人认证后免费使用365天，调用字符为在 500 万字符。
  
