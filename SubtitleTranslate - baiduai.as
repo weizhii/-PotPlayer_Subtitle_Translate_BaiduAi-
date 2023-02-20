@@ -1,4 +1,4 @@
-﻿/*
+/*
     real time subtitle translate for PotPlayer using Bai Du API
 */
 
@@ -7,7 +7,7 @@
 // string GetDesc()                                                            -> get detail information
 // string GetLoginTitle()                                                    -> get title for login dialog
 // string GetLoginDesc()                                                    -> get desc for login dialog
-// string ServerLogin(string User, string Pass)                                -> login
+// string ServerLogin(string User, string Pass)            ->login
 // string ServerLogout()                                                    -> logout
 // array<string> GetSrcLangs()                                                 -> get source language
 // array<string> GetDstLangs()                                                 -> get target language
@@ -80,6 +80,12 @@ string GetPasswordText(){
     return "密钥:";
 }
 
+/**
+* 获取登录时，accesstoken输入框的标签名称，无法使用，一加就禁用账户设置窗口
+*/
+string GetAccessTokenText(){
+    return "AccessToKen:";
+}
 
 /**
 * 获取支持的语言列表 - 源语言
@@ -104,14 +110,36 @@ array<string> GetDstLangs(){
 *  这里不做校验了，只要有输入就判定为成功。具体测试由用户的翻译测试按钮去测试
 * @param appIdStr appid 字符串
 * @param toKenStr 秘钥字符串
+* @param accessToKenStr  accessToken字符串
 */
 string ServerLogin(string appIdStr, string toKenStr){
     //空字符串校验
     if(appIdStr.empty() || toKenStr.empty()) return "fail";
 
+    string ret = "";
     //记录到全局变量中
     appId = appIdStr;
     toKen = toKenStr;
+    if(accessToKen.empty()){
+        //构建请求的 url 地址
+       string url = "https://aip.baidubce.com/oauth/2.0/token";
+       string postParams = "grant_type=client_credentials" + "&";
+       postParams += "client_id=" + appId + "&";
+       postParams += "client_secret=" + toKen;
+       //请求accesstoken
+       string html = HostUrlGetString(url, userAgent,"",postParams);
+       //解析accesstoken结果
+        if(!html.empty()){//如果成功取得 Html 内容
+            accessToKen = JsonParse(html);//那么解析这个 HTML 里面的 json 内容
+        }
+    }
+
+    //if(accessToKen.length() < 69){    //小于69退出
+//"24.6c5e1ff107f0e8bcef8c46d3424a0e78.2592000.1485516651.282335-8574074"
+      
+     //return "fail";
+     //}
+    
     return "200 ok";
 }
 
@@ -123,8 +151,14 @@ string ServerLogin(string appIdStr, string toKenStr){
 * @param dstLang 目标语言
 */
 string Translate(string text, string &in srcLang, string &in dstLang){
-    string ret = "";
+    //string ret = "";
     string res = "";
+    //accessToken 小于69或者为空，退出提示accessToKen 无效
+    if(accessToKen.length() < 69){
+       res = "accessToKen invaild";
+       return res;
+    }
+
     if(!text.empty()){//确实有内容需要翻译才有必要继续
         //开发文档。需要App id 等信息
         //http://api.fanyi.baidu.com/api/trans/product/apidoc
@@ -135,22 +169,19 @@ string Translate(string text, string &in srcLang, string &in dstLang){
         dstLang = GetLang(dstLang);
         
         //对原文进行 url 编码
-        string q = HostUrlEncode(text);
+        //string q = HostUrlEncode(text);
         
         //构建请求的 url 地址
-
-       string url = "https://aip.baidubce.com/oauth/2.0/token";
-       string postParams = "grant_type=client_credentials" + "&";
-       postParams += "client_id=" + appId + "&";
-       postParams += "client_secret=" + toKen;
-       //grant_type=client_credentials&client_id=HXRRdCky5grk5OPOZEq0lvxG&client_secret=7GPEVqvm1BoLz0kAYFb27UgRqvGBZaEf
-
-        /*string salt = "" + HostGetTickCount();//随机数
-        string sign = HostHashMD5(appId + text + salt + toKen);//签名 appid+q+salt+密钥
-        string parames = "from=" + srcLang + "&to=" + dstLang + "&appid=" + appId + "&sign=" + sign  + "&salt=" + salt + "&q=" + q;
-        string url = "http://api.fanyi.baidu.com/api/trans/vip/translate?" + parames;
-
-         */
+        string subtitleurl = "https://aip.baidubce.com/rpc/2.0/mt/texttrans/v1?access_token=" + accessToKen;//accessToken;
+        // post {"from": "en", "to": "zh", "q": "hello mozart"}
+        string post = "{\"from\":\"" + srcLang + "\",";   //{\"from\":\"" + fromlan + "\","
+        post += "\"to\":\"" + dstLang + "\",";
+        post += "\"q\":\"" + text +"\"}";
+        string SendHeader = 'Content-Type: application/json'+ "\r\n";
+        SendHeader += 'Accept: application/json' + "\r\n";
+	    
+        
+       
         //线程同步 - 独占锁
         acquireExclusiveLock();
 
@@ -162,30 +193,18 @@ string Translate(string text, string &in srcLang, string &in dstLang){
         if(sleepTime > 0){//如果冷却时间还没到，有需要休息的部分
             HostSleep(sleepTime);//那么就休息这些时间
         }
-
-        //请求翻译
-        string html = HostUrlGetString(url, userAgent,"",postParams);
+        
+       //请求翻译
+        string msg = HostUrlGetString(subtitleurl, userAgent,SendHeader,post);
+      
 
         //更新下次执行任务的时间
         nextExecuteTime = coolTime + HostGetTickCount();//上面 HostUrlGetString 需要时间执行，所以需要重新获取 TickCount
 
         //线程同步 - 释放独占锁
         releaseExclusiveLock();
+         
 
-        //解析翻译结果
-        if(!html.empty()){//如果成功取得 Html 内容
-            ret = JsonParse(html);//那么解析这个 HTML 里面的 json 内容
-        }
-        
-        string subtitleurl = "https://aip.baidubce.com/rpc/2.0/mt/texttrans/v1?access_token=" + ret;//accessToken;
-        // post {"from": "en", "to": "zh", "q": "hello mozart"}
-        string post = "{\"from\":\"" + srcLang + "\",";   //{\"from\":\"" + fromlan + "\","
-        post += "\"to\":\"" + dstLang + "\",";
-        post += "\"q\":\"" + text +"\"}";
-        string SendHeader = 'Content-Type: application/json'+ "\r\n";
-        SendHeader += 'Accept: application/json' + "\r\n";
-	    
-        string msg = HostUrlGetString(subtitleurl, userAgent,SendHeader,post);
         if(!msg.empty()){
             res = JsonParse2(msg);
         }
